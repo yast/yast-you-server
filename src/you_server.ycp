@@ -464,7 +464,7 @@ server.</p>")	+
 	// help text continues
 	_("<p>Enable the SLP registration to announce the YOU server via the 'Service Location Protocol'.");
 
-    Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
+    Wizard::SetNextButton(`next, Label::CloseButton() );
     Wizard::HideAbortButton();
     Wizard::HideBackButton();
 
