@@ -340,8 +340,10 @@ Please start the server first."));
 		y2milestone( "%1", cmd );
 
 		integer exitcode = (integer)SCR::Execute( .target.bash, cmd );
-		if ( exitcode != 0 )
+		if ( exitcode != 0 ) {
 		    y2error( "Synchronization failed");
+                    Popup::Error( "Synchronisation failed." );
+                }
 	    }
       
 	    i = i + 1;
