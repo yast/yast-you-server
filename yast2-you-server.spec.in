@@ -1,0 +1,29 @@
+@HEADER-COMMENT@
+# neededforbuild yast2-devel-packages gpp libgpp libxcrypt libxcrypt-devel yast2-packager yast2-installation yast2-storage yast2-country yast2-bootloader yast2-mouse yast2-x11
+
+@HEADER@
+Requires:	yast2 yast2-online-update
+
+Summary:    	YaST2 online update
+
+%description
+-
+
+@PREP@
+
+@BUILD@
+
+@INSTALL@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+@configdir@/you_server.y2cc
+@scrconfdir@/*.scr
+@clientdir@/you_server.ycp
+@desktopdir@/you_server.desktop
+%doc @docdir@
+/etc/httpd/modules/you_server
+/etc/httpd/you_server.conf
+/var/adm/fillup-templates/sysconfig.apache-you_server
