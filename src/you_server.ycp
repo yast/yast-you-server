@@ -126,9 +126,18 @@ Install the package now?" );
 	    }
 	}
 
-        // SLP register - write file you.reg
-	boolean success = SLP::RegFile ( "you.suse:http", $[ "basepath":base_path], reg_file );
-	    
+	boolean success = false;
+
+	map bashResult = (map)SCR::Execute( .target.bash_output, "hostname -f" );
+	string host = bashResult[ "stdout" ]:"";
+
+	if ( size(host) != 0 )
+	{
+	    // SLP register - write file you.reg
+	    string service = "service:you.suse:http://" +  substring( host, 0, size(host)-1 ) + ",en,65535";
+	    success = SLP::RegFile ( service, $[ "basepath":base_path], reg_file );
+	}   
+
 	if ( success )
 	{
 	    y2milestone( "Wrote /etc/slp.reg.d/%1", reg_file ); 
