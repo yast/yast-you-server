@@ -334,17 +334,20 @@ Please start the server first."));
 		UI::ChangeWidget( `id( `product ), `Value, productName );
 		UI::RecalcLayout();
 
-		string cmd = "online_update -G -p " + pName + " -v " + pVersion +
+		string cmd = "online_update -G -p " + "\"" + pName + "\"" + " -v " + pVersion +
 		    " -a " + pArch + " -u " + pUrl;
 
-		y2debug( "%1", cmd );
+		y2milestone( "%1", cmd );
 
-		SCR::Execute( .target.bash, cmd );
+		integer exitcode = (integer)SCR::Execute( .target.bash, cmd );
+		if ( exitcode != 0 )
+		    y2error( "Synchronization failed");
 	    }
       
 	    i = i + 1;
 	}
 
+	// TODO: show error popup in sync failed
 	UI::ChangeWidget( `id( `state ), `Value, _("Server synced.") );
 	UI::RecalcLayout();
 
@@ -535,8 +538,10 @@ Please start the server first."));
     string help_text = _("<p>This module is used to setup and control a local YOU
 server.</p>")	+
 	// help text continues
-	_("<p>Enable the SLP registration to announce the YOU server via the 'Service Location Protocol'.");
-
+	_("<p>Enable the <b>SLP registration</b> to announce the YOU server via the 'Service Location Protocol'.") +
+	// help text continues
+	_("<p>Press<b> Synchronize now</b> to get the current patches for all products.</p>");
+	
     Wizard::SetNextButton(`next, Label::CloseButton() );
     Wizard::HideAbortButton();
     Wizard::HideBackButton();
