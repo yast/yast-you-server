@@ -465,7 +465,7 @@ server.</p>")	+
 	_("<p>Enable the SLP registration to announce the YOU server via the 'Service Location Protocol'.");
 
     Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
-    Wizard::ReplaceAbortButton( `Empty() );
+    Wizard::HideAbortButton();
     Wizard::ReplaceBackButton( `Empty() );
 
     Wizard::SetContents( _("YaST Online Update Server Configuration"),
