@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar  5 17:00:24 CET 2004 - gs@suse.de
+
+- layout changed, SLP registration improved 
+
+-------------------------------------------------------------------
 Sun Feb 29 05:04:14 CET 2004 - nashif@suse.de
 
 - Use apache sysconfig agent from yast2
