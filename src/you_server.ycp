@@ -115,7 +115,7 @@ will now be installed.");
 	    return false;
     }
     
-    define void EnableSLP() ``{
+    define boolean EnableSLP() ``{
 
 	string help = _( "The installation of the package 'openslp'
 is required.
@@ -125,8 +125,16 @@ Install the package now?" );
 	{
 	    if ( !Require::RequireAndConflict( [ "openslp" ], [], help ) )
 	    {
-		Popup::Error (_("Failed to install required packages."));	
+		Popup::Error (_("Failed to install required packages."));
+		return false;
 	    }
+	}
+
+	if ( !server_is_running )
+	{
+	    Popup::Warning (_("The HTTP server isn't running.
+Please start the server first."));
+	    return false;  
 	}
 
 	boolean success = false;
@@ -159,9 +167,15 @@ Install the package now?" );
 	}
 	
 	if ( SLPRegistered() )
+	{
 	    UI::ChangeWidget( `id(`slp), `Value, true );
+	    return true;
+	}
 	else
+	{
 	    UI::ChangeWidget( `id(`slp), `Value, false );
+	    return false;
+	}
     }
     
     define void DisableSLP() ``{
