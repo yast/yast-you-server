@@ -51,7 +51,7 @@
 			     )
 		       );
 
-	string help = _("The YOU server requires an HTTP server. The apache package
+	string help = _("The YOU server requires an HTTP server. The 'apache' package
 will now be installed.");
 
 	if ( !Require::AreAllPackagesInstalled( [ "apache" ] ) ) {
@@ -99,10 +99,12 @@ will now be installed.");
 
     define void EnableSLP() ``{
 
+	string help = _( "The installation of the package 'openslp' is required.
+ Install the package now?" );
+	
 	if ( !Require::AreAllPackagesInstalled( [ "openslp" ] ) )
 	{
-	    if ( !Require::RequireAndConflict( [ "openslp" ], [],
-					      _("The installation of the package 'openslp' is required. ") ) )
+	    if ( !Require::RequireAndConflict( [ "openslp" ], [], help ) )
 	    {
 		Popup::Error (_("Failed to install required packages."));	
 	    }
@@ -117,14 +119,16 @@ will now be installed.");
 		    UI::ChangeWidget( `id(`slp), `Value, false );
 		}
 	}
-        // SLP register
-	if ( SCR::Execute( .target.bash, "slptool register" ) != 0 )
+        // SLP register - TO DO: write .reg file for static registration
+	map bashResult = (map)SCR::Execute( .target.bash_output, "hostname -i" );
+	string cmd = "slptool register service:you.suse://" +  bashResult[ "stdout" ]:"" ;
+	if ( SCR::Execute( .target.bash, cmd ) != 0 )
 	{
 	    Popup::Error( _("SLP register failed.") );
 	}
 	else
 	{
-	    y2milestone( "SLP registration succesful" ); 
+	    y2milestone( "SLP registered: %1", cmd ); 
 	}
     }
     
@@ -233,14 +237,14 @@ will now be installed.");
 
     term widget_server_unused =
 	`HBox(
-	      `Label( _("Status: unused") ),
+	      `Label( _("Server status: unused") ),
 	      `HStretch(),
 	      `PushButton( `id( `server_control ), _("Start Server") )
 	      );
 
     term widget_server_running =
 	`HBox(
-	      `Label( _("Status: running") ),
+	      `Label( _("Server status: running") ),
 	      `HStretch(),
 	      `PushButton( `id( `server_control ), _("Stop Server") )
 	      );
@@ -324,10 +328,10 @@ will now be installed.");
     term contents =
 	`VBox(
 	      `VSpacing( 1.0 ),
-	      `Frame ( _("Server &Administration"),
+	      `Frame ( _("Server &Control"),
 		       `VBox( `VSpacing(0.5),
 			      `ReplacePoint( `id( `server_status ), `Empty() ),
-			      `Left(`CheckBox( `id( `slp ), `opt(`notify), _("Enable/Disable &SLP"),
+			      `Left(`CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
 					       Runlevel::ServiceStatus( "slpd" ) == 0 )
 				    ),
 			      `VSpacing(0.5)
@@ -357,9 +361,11 @@ will now be installed.");
 		    ),
       	      `VSpacing( 1.0 )
 	      );
-
+    // help text for the YOU Server Configuration dialog
     string help_text = _("<p>This module is used to setup and control a local YOU
-server.</p>");
+server.</p>")	+
+	// help text continues
+	_("<p>Enable the SLP registration to announce the YOU server via the 'Service Location Protocol'.");
 
     Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
     Wizard::ReplaceAbortButton( `Empty() );
