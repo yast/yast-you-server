@@ -30,6 +30,7 @@
     string server_name = _("Local YOU Server");
     
     Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("you_server");
 
     define void RunSuseConfigApache( boolean enable_you_server ) ``{
 
