@@ -207,7 +207,7 @@ will now be installed.");
 		UI::ChangeWidget( `id( `product ), `Value, productName );
 		UI::RecalcLayout();
 
-		string cmd = "online_update -g -p " + pName + " -v " + pVersion +
+		string cmd = "online_update -G -p " + pName + " -v " + pVersion +
 		    " -a " + pArch + " -u " + pUrl;
 
 		y2debug( "%1", cmd );
