@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 18 10:24:31 CET 2004 - gs@suse.de
+
+- V 2.9.7
+- Add error popup for synchronisation errors.
+- install openslp-server 
+
+-------------------------------------------------------------------
 Mon Mar 15 17:15:19 CET 2004 - gs@suse.de
 
 - V 2.9.6
