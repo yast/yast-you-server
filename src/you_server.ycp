@@ -466,7 +466,7 @@ server.</p>")	+
 
     Wizard::ReplaceNextButton (`PushButton(`id(`next), Label::CloseButton()));
     Wizard::HideAbortButton();
-    Wizard::ReplaceBackButton( `Empty() );
+    Wizard::HideBackButton();
 
     Wizard::SetContents( _("YaST Online Update Server Configuration"),
 			 contents, help_text, false, true );
