@@ -75,16 +75,38 @@
 			     )
 		       );
 
-	string help = _("The YOU server requires an HTTP server. The 'apache2' package
-will now be installed.");
+	string help = _("The YOU server requires an HTTP server.
+The 'apache2' package is required.
+Install the package now?");
 
-	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-worker" ] ) ) {
-	    UI::ChangeWidget( `id(`details), `Value, _("Installing HTTP server...") );
-	    UI::RecalcLayout();
-    
-	    if ( !Require::RequireAndConflict( [ "apache2-worker" ], [], help ) )
+	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-worker" ] ) )
+	{
+	    boolean install = true;
+	    if ( Service::Enabled( "apache" ) )
 	    {
-		Popup::Error (_("Failed to install required packages."));
+		install =  Popup::ContinueCancel( // text of a popup
+						 _( "There is already the HTTP Server 'apache'
+in use. The YOU server needs 'apache2'.
+Do you want to disable 'apache' and install
+and use 'apache2' or cancel the installation?  " ) );	
+
+		if ( install )
+		    Service::Adjust( "apache", "disable" );
+	    }
+
+	    if ( install )
+	    {
+		UI::ChangeWidget( `id(`details), `Value, _("Installing HTTP server...") );
+		UI::RecalcLayout();
+    
+		if ( !Require::RequireAndConflict( [ "apache2", "apache2-worker" ], [], help ) )
+		{
+		    Popup::Error (_("Failed to install required packages."));
+		    ok = false;
+		}
+	    }
+	    else
+	    {
 		ok = false;
 	    }
 	}
@@ -96,7 +118,9 @@ will now be installed.");
 
 	    // add "you_server" to APACHE_SERVER_FLAGS
 	    RunSuseConfigApache( true );
-
+	    // adjust runlevel
+	    Service::Adjust( "apache2", "enable" );
+	    
 	    UI::ChangeWidget( `id(`details), `Value, _("Starting server...") );
 	    UI::RecalcLayout();
 	    integer exitCode = Service::RunInitScript( "apache2", "restart" );
@@ -108,23 +132,29 @@ will now be installed.");
     }
 
     define void StopYouServer() ``{
-
+	// headline of a popup
 	boolean restart =  Popup::AnyQuestion( _( "Question" ),
 					    // text of a popup
 					    // user decision required whether to stop or restart
-					    _("Do you want to shut down the HTTP Server
+					    _( "Do you want to shut down the HTTP Server
 (apache2) or restart without
-providing the YOU patches directory?"),
+providing the YOU patches?" ),
 					    _("&Restart"),
 					    _("S&hut down"),
 					       `focus_yes );
 
+	string label = "";
+	if ( restart )
+	    label = _("Restarting YOU server ...");
+	else
+	    label = _("Stopping YOU server...");
+	
 	UI::OpenDialog(
 		       `opt(`decorated),
 		       `VBox(
 			     `HBox(
 				   `HSpacing(1),
-				   `Label( `id( `state ), _("Stopping YOU server...") ),
+				   `Label( `id( `state ), label ),
 				   `HSpacing( 1 )
 				   )
 			     )
