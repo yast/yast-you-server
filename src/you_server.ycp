@@ -214,8 +214,8 @@ Please start the server first."));
 	if ( size(host) != 0 )
 	{
 	    // SLP register - write file you.reg
-	    string service = "service:" + service_type + ":http://" + substring( host, 0, size(host)-1 ) + ",en,65535";
-	    success = SLP::RegFile ( service, $[ "basepath":base_path, "name":server_name ], reg_file );
+	    string service = "service:" + service_type + ":http://" + substring( host, 0, size(host)-1 ) + base_path + ",en,65535";
+	    success = SLP::RegFile ( service, $[ "description":server_name ], reg_file );
 	}   
 
 	if ( success )
@@ -540,7 +540,10 @@ server.</p>")	+
 	// help text continues
 	_("<p>Enable the <b>SLP registration</b> to announce the YOU server via the 'Service Location Protocol'.") +
 	// help text continues
-	_("<p>Press<b> Synchronize now</b> to get the current patches for all products.</p>");
+	_("<p>Press<b> Synchronize now</b> to get the current patches for all products.</p>") +
+	// help text continues
+	_("<p>YOU servers are added to the server list of an YOU client if <b>SLP_ENABLED</b> in
+'/etc/sysconfig/onlineupdate' is set to \"yes\".</p>");
 	
     Wizard::SetNextButton(`next, Label::CloseButton() );
     Wizard::HideAbortButton();
