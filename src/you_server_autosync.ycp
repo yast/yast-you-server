@@ -1,0 +1,167 @@
+/**
+  
+  YOU server configuration
+
+  Setup automatic synchronisation 
+
+  Author: Gabriele Strattner <gs@suse.de>
+
+*/
+{
+    import "Mode";
+    
+    textdomain "you-server";
+
+    
+    string cronfile = "/etc/cron.d/yast2-you-server";
+    string syncfile = "/var/lib/YaST2/you/syncfile";
+    
+    integer hour = random(24);
+    integer minute = random(60);
+
+    define boolean CronEnabled() ``{
+	
+	string cronjob = "";
+
+	if (SCR::Read(.target.size, cronfile)!= -1 )
+	{
+	    cronjob = (string)SCR::Read( .target.string, cronfile );
+	}
+
+	if ( size( cronjob ) > 0 )
+	{
+	    return true;
+	}
+	else
+	{
+	    return false;
+	}
+    }
+    
+    define boolean WriteCronFile( list products ) ``{
+	integer i = 0;
+	string cronjob = sformat( "%1 %2 * * * root %3", minute, hour, syncfile );
+	string cmds = "#!/bin/sh" + "\n";
+	
+	while ( i < size( products ) ) {
+	    map pm = products[ i ]:$[];
+	    string pName = pm[ "name" ]:"";
+
+	    if ( size( pName ) != 0 ) {
+		string pVersion = pm[ "version" ]:"";
+		string pArch = pm[ "arch" ]:"";
+		string pUrl = pm[ "url" ]:"";
+		
+		cmds = cmds + "online_update -G -p " + "\"" + pName + "\"" + " -v " + pVersion + " -a " + pArch + " -u " + pUrl;
+		cmds= cmds + "\n";
+	    }
+	    i = i + 1;
+	}
+	y2milestone( "Commands: %1", cmds );
+	
+	SCR::Write( .target.string, syncfile, cmds );
+	SCR::Execute( .target.bash, "chmod +x " + syncfile ); 
+
+	SCR::Write( .target.string, cronfile, cronjob );
+
+	return true;
+    }
+    
+    define symbol SetupAutomatic( list products ) ``{
+
+	boolean enabled = CronEnabled();
+	
+	string heading = _("YOU Server Automatic Synchronisation Setup");
+
+	string txt = _("The automatic synchronization is executed by a daily cronjob. 
+A network connection must be available when
+the synchronisation takes place.");
+
+	
+	term head = `VBox(
+			  `VSpacing( 0.2 ),
+			  `Heading( heading ),
+			  `VSpacing( 0.2 ),
+			  `Label( txt ),
+			  `VSpacing( 0.6 )
+			  );
+
+	term content =
+	    `VBox(
+		  `HBox(
+			`HSpacing( 0.8 ),
+			`Left(
+			      `CheckBox( `id( `enable ), `opt( `notify ), _("Enable Automatic Update"), enabled )
+			      )
+			),
+		  `VSpacing( 0.2 ),
+		  `HBox(
+			`HSpacing( 0.8 ),
+			`Left(
+			      `Frame( `id( `settings ), "",
+				      `VBox(
+					    `HBox(
+						  `HSpacing( 0.8 ),
+						  `Left(
+							`Label( `id( `crontime ), _("Time when synchronisation is performed:") )
+							),
+						  `HSpacing( 0.8 )
+						  ),
+					    `HBox(
+						  `HStretch(),
+						  `IntField( `id( `hour ), _("Hour"), 0, 23, hour ),
+						  `IntField( `id( `minute ), _("Minute"), 0, 59, minute ),
+						  `HStretch()
+						  ),
+					    `VSpacing( 0.5 )
+					    )
+				      )
+			      ),
+			`HSpacing( 0.8 )
+			),
+
+		  `VSpacing( 0.2 )
+		  );
+
+	term buttons =  `HBox(
+			      `PushButton( `id( `next ), Label::OKButton() ),
+			      `PushButton( `id( `abort ), Label::CancelButton() )
+			      );
+
+	term all = `VBox(head, content, buttons);
+	UI::OpenDialog( `opt( `decorated ), all );
+
+	UI::ChangeWidget( `id( `crontime ), `Enabled, enabled );
+
+	symbol ret = `enable;
+
+	repeat {
+	    enabled = (boolean)UI::QueryWidget( `id( `enable ), `Value );
+
+	    if ( ret == `enable ) {
+		UI::ChangeWidget( `id( `crontime ), `Enabled, enabled );
+		UI::ChangeWidget( `id( `hour ), `Enabled, enabled );
+		UI::ChangeWidget( `id( `minute ), `Enabled, enabled );
+	    }
+
+	    ret = (symbol)UI::UserInput();
+
+	    if (  ret == `next) {
+		if ( enabled )
+		{
+		    minute = (integer)UI::QueryWidget( `id( `minute ), `Value );
+		    hour = (integer)UI::QueryWidget( `id( `hour ), `Value );
+
+		    WriteCronFile( products );
+		    
+		} else {
+		    SCR::Execute( .target.remove, cronfile );
+		}
+	    }
+	} until ( ret == `next || ret == `abort  || ret == `back );
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+}

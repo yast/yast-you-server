@@ -19,6 +19,7 @@ Summary:    	Online Update Server Configuration
 %files
 %defattr(-,root,root)
 @clientdir@/you_server.ycp
+@yncludedir@/you_server_autosync.ycp
 @desktopdir@/you_server.desktop
 %doc @docdir@
 /etc/apache2/conf.d/you_server.conf

@@ -16,7 +16,8 @@
     import "Label";
     import "SLP";
 
-    include "online_update_dialogs.ycp";
+    include "you_server_autosync.ycp";
+
     
     boolean server_is_running = true;
     
@@ -269,7 +270,36 @@ Please start the server first."));
 	    UI::ChangeWidget( `id(`slp), `Value, false );
     }
     
-    define map ProductDialog( map product ) ``{
+    define map ProductDialog( map<string, string> product ) ``{
+
+	string passwd_file = "/var/lib/YaST2/you/password";
+	string content = (string)SCR::Read (.target.string, passwd_file);
+	list<string> splitted = [];
+
+	string user = "";
+	string passwd = "";
+	
+	if ( content != nil ) {
+	    splitted = splitstring( content, "\n");
+
+	    foreach ( string entry, splitted, ``{
+		// get user and password for this URL
+		list<string> linesplit = splitstring( entry, "=" );
+		string ident =  linesplit[0]:"";
+
+		if ( substring( ident, 0, 9 ) == "USERNAME_"
+		     && substring( ident, 9 ) == product["url"]:"" )
+		{
+		    user = linesplit[1]:"";
+		}
+		if ( substring( ident, 0, 9 ) == "PASSWORD_"
+		     && substring( ident, 9 ) == product["url"]:"" )
+		{
+		    passwd = linesplit[1]:"";
+		}    
+	    } );
+	}
+  
 	UI::OpenDialog(
 		       `opt( `decorated ),
 		       `VBox(
@@ -277,9 +307,25 @@ Please start the server first."));
 			     `TextEntry( `id( `name ), _("Product Name"), product[ "name" ]:"" ),
 			     `TextEntry( `id( `version ), _("Version"), product[ "version" ]:"" ),
 			     `TextEntry( `id( `arch ), _("Architecture"), product[ "arch" ]:"" ),
-			     `TextEntry( `id( `url ), _("Synchronization URL"),
-					 product[ "url" ]:"" ),
+			     `TextEntry( `id( `url ), _("Synchronization URL"), product[ "url" ]:"" ),
 			     `VSpacing( 0.3 ),
+			     `HBox(
+				   `HSpacing( 0.5 ),
+				   `Frame( _("Au&thentication"),
+					   `VBox(
+						 `Left( `CheckBox( `id( `anonymous ),
+								   `opt( `notify ), _("&Anonymous"),
+								   size( user ) == 0 ) ),
+						 `HBox(
+						       `TextEntry( `id( `username ), _("&User Name"), user )
+						       ),
+						 `HBox(
+						       `Password( `id( `password ), _("&Password"), passwd )
+						       )
+						 )
+					   )
+				   ),
+			     `VSpacing( 0.3 ),   
 			     `HBox(
 				   `PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
 				   `PushButton( `id( `cancel ), Label::CancelButton() )
@@ -289,16 +335,58 @@ Please start the server first."));
     
 	UI::SetFocus( `name );
     
-	symbol ret = (symbol)UI::UserInput();
+	symbol ret = `any;
+	
+	repeat
+        {
+            boolean anonymous = (boolean) UI::QueryWidget( `id( `anonymous ), `Value );
+	    UI::ChangeWidget( `id( `username ), `Enabled, !anonymous );
+	    UI::ChangeWidget( `id( `password ), `Enabled, !anonymous );
+		
+            ret = (symbol)UI::UserInput();
+	    
+	    if ( ret == `ok ) {
+		product[ "name" ] = (string)UI::QueryWidget( `id( `name ), `Value );
+		product[ "version" ] = (string)UI::QueryWidget( `id( `version ), `Value );
+		product[ "arch" ] = (string)UI::QueryWidget( `id( `arch ), `Value );
+		product[ "url" ] = (string)UI::QueryWidget( `id( `url ), `Value );
 
-	if ( ret == `ok ) {
-	    product[ "name" ] = (string)UI::QueryWidget( `id( `name ), `Value );
-	    product[ "version" ] = (string)UI::QueryWidget( `id( `version ), `Value );
-	    product[ "arch" ] = (string)UI::QueryWidget( `id( `arch ), `Value );
-	    product[ "url" ] = (string)UI::QueryWidget( `id( `url ), `Value );
-	} else {
-	    product = nil;
-	}
+		if ( !anonymous )
+		{
+		    // get user and passwd
+		    string passwd = (string)UI::QueryWidget( `id( `password ), `Value );
+		    string user = (string)UI::QueryWidget( `id( `username ), `Value );
+               
+		    string passwdstr = "PASSWORD_" + product[ "url" ]:"" + "=" + passwd;
+		    string userstr = "USERNAME_" +  product[ "url" ]:"" + "=" + user;
+
+		    string newcontent = "";
+		    
+		    if ( splitted == [] )
+		    {
+			newcontent = passwdstr + "\n" + userstr;
+		    }
+		    else
+		    {
+			foreach ( string entry, splitted, ``{
+			    list<string> linesplit = splitstring( entry, "=" );
+			    string ident =  linesplit[0]:"";
+
+			    if ( substring( ident, 9 ) != product["url"]:"" )
+			    {
+				// write existing/unchanged entries
+				newcontent = newcontent + entry + "\n";
+			    }	
+			} );
+			// add new/changed entries
+			newcontent = newcontent + passwdstr + "\n" + userstr;
+		    }
+		    
+		    SCR::Write( .target.string, passwd_file, newcontent );
+		}
+	    }
+	    
+	} until ( ret == `cancel || ret == `ok );
 
 	UI::CloseDialog();
     
@@ -345,7 +433,7 @@ Please start the server first."));
 
 		integer exitcode = (integer)SCR::Execute( .target.bash, cmd );
 		if ( exitcode != 0 ) {
-		    string product = pName + " " + pVersion + " " + pArch;
+		    string product = pName + " " + pVersion + " " + pUrl;
 		    errlist = add( errlist, product ); 
 		    y2error( "Synchronization of %1 failed", product);
 		    error = true;
@@ -361,8 +449,11 @@ Please start the server first."));
 	    foreach( string product, errlist, ``{
 		errtext = errtext + product + "\n";
 	    });
-	    // text of an error popup - list of all product which cannot be synchronized follows 
-	    Popup::Error( _("Synchronisation failed for:") + "\n" + errtext );
+	    // text of an error popup - list of all product which cannot be synchronized follows
+	    Popup::Error( _("Synchronisation failed for:") + "\n" + errtext +
+			  _("Check whether the requested server is up. If yes,
+make sure that the user name and the password
+are set correctly (see 'Edit' dialog).") );
 	}
 	else
 	{
@@ -570,7 +661,6 @@ server.</p>")	+
     Wizard::SetContents( _("YaST Online Update Server Configuration"),
 			 contents, help_text, false, true );
 
-    UI::ChangeWidget( `id(`setup_sync), `Enabled, false );
 
     UpdateServerStatus();
 
@@ -593,7 +683,8 @@ server.</p>")	+
 	map you_info = Pkg::YouStatus();
 	string url = "";
 
-	if ( lookup( you_info, "product", "unknown") == "SUSE Linux" )
+        string product = you_info[ "product" ]:"unknown";
+	if ( product == "SuSE Linux" || product == "SUSE LINUX" )
 	    url = "ftp://ftp.suse.com/pub/suse";	// box
 	else
 	    url = "http://sdb.suse.de";			// business products
@@ -635,14 +726,17 @@ server.</p>")	+
 	} else if ( ret == `sync ) {
 	    SyncServer();
 	    UpdateLastSync();
-	} else if ( ret == `add ) {
+	} else if ( ret == `setup_sync ) {
+	    SetupAutomatic( products );
+	}
+	else if ( ret == `add ) {
 	    map product = ProductDialog( $[] );
-	    if ( product != nil ) products = add( products, product );
+	    if ( product != $[] ) products = add( products, product );
 	    UpdateProductList();
 	} else if ( ret == `edit ) {
 	    integer current = (integer)UI::QueryWidget( `id(`products), `CurrentItem );
 	    map product = ProductDialog( products[ current ]:$[] );
-	    if ( product != nil ) products[ current ] = product;
+	    if ( product != $[] ) products[ current ] = product;
 	    UpdateProductList();
 	    UI::ChangeWidget( `id(`products), `CurrentItem, current );
 	} else if ( ret == `remove ) {

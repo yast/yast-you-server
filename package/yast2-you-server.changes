@@ -1,4 +1,24 @@
 -------------------------------------------------------------------
+Mon Apr 19 13:57:40 CEST 2004 - cschum@suse.de
+
+- Merge changes until branch-Linux-9_1-2_9_10 from 9.1 branch.
+- 2.10.0
+
+-------------------------------------------------------------------
+Mon Apr 19 10:47:40 CEST 2004 - cschum@suse.de
+
+- Fix build by adding missing you_server_autosync.ycp to package.  
+- 2.9.10
+
+-------------------------------------------------------------------
+Fri Apr 16 12:26:53 CEST 2004 - gs@suse.de
+
+- V 2.9.9
+- correct path for box product (bug #38284)
+- enable automatic synchronization setup
+- respect user name and password
+
+-------------------------------------------------------------------
 Fri Apr 02 15:59:59 CEST 2004 - arvin@suse.de
 
 - finally changed license to GPL for good
