@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Mar 12 18:33:27 CET 2004 - nashif@suse.de
+
+- Install apache2 conf in the right directory
+- Use prefork instead of worker as suggested 
+  by the apache2 maintainer (prefork is always prefered)
+- dont install apache1 conf files
+
+-------------------------------------------------------------------
 Fri Mar 12 15:57:08 CET 2004 - gs@suse.de
 
 - V 2.9.4

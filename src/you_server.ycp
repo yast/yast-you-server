@@ -28,7 +28,7 @@
     string service_type = "you.suse";
     // default name for the server
     string server_name = _("Local YOU Server");
-    
+
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("you_server");
 
@@ -47,7 +47,7 @@
 	    server_flags = maplist( string flag, server_flags, { if ( flag != "you_server" ) return flag; } );
 	    flags = mergestring( server_flags, " " );
 	}
-	SCR::Write( .sysconfig.apache2.APACHE_SERVER_FLAGS, flags ); 
+	SCR::Write( .sysconfig.apache2.APACHE_SERVER_FLAGS, flags );
 
 	if( !SCR::Write( .sysconfig.apache2, nil ) ) {
 	    Popup::Error( _("Unable to write /etc/sysconfig/apache2") );
@@ -60,13 +60,13 @@
 
     define void StartYouServer() ``{
 	boolean ok = true;
-	
+
 	UI::OpenDialog(
 		       `opt(`decorated),
 		       `VBox(
 			     `HBox(
 				   `HSpacing(1),
-				   `VBox( 
+				   `VBox(
 					 `Left( `Label( `id( `state ), _("Starting YOU server...") ) ),
 					 `Left( `Label( `id( `details ), _("Initializing...") ) )
 					 ),
@@ -79,7 +79,7 @@
 The 'apache2' package is required.
 Install the package now?");
 
-	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-worker" ] ) )
+	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-prefork" ] ) )
 	{
 	    boolean install = true;
 	    if ( Service::Enabled( "apache" ) )
@@ -88,7 +88,7 @@ Install the package now?");
 						 _( "There is already the HTTP Server 'apache'
 in use. The YOU server needs 'apache2'.
 Do you want to disable 'apache' and install
-and use 'apache2' or cancel the installation?  " ) );	
+and use 'apache2' or cancel the installation?  " ) );
 
 		if ( install )
 		    Service::Adjust( "apache", "disable" );
@@ -98,8 +98,8 @@ and use 'apache2' or cancel the installation?  " ) );
 	    {
 		UI::ChangeWidget( `id(`details), `Value, _("Installing HTTP server...") );
 		UI::RecalcLayout();
-    
-		if ( !Require::RequireAndConflict( [ "apache2", "apache2-worker" ], [], help ) )
+
+		if ( !Require::RequireAndConflict( [ "apache2", "apache2-prefork" ], [], help ) )
 		{
 		    Popup::Error (_("Failed to install required packages."));
 		    ok = false;
