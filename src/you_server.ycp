@@ -15,6 +15,8 @@
     import "Popup";
     import "Label";
     import "SLP";
+
+    include "online_update_dialogs.ycp";
     
     boolean server_is_running = true;
     
@@ -316,14 +318,14 @@ Please start the server first."));
 					 `Label( `id( `product ), "                   " )
 					 ),
 				   `HSpacing( 1 )
-				   ),
-			     `HBox(
-				   `PushButton( `id( `close ), Label::CloseButton() )
 				   )
 			     )
 		       );
 
 	integer i = 0;
+	list<string> errlist = [];
+	boolean error = false;
+	
 	while ( i < size( products ) ) {
 
 	    map pm = products[ i ]:$[];
@@ -343,26 +345,37 @@ Please start the server first."));
 
 		integer exitcode = (integer)SCR::Execute( .target.bash, cmd );
 		if ( exitcode != 0 ) {
-		    y2error( "Synchronization failed");
-                    Popup::Error( "Synchronisation failed." );
+		    string product = pName + " " + pVersion + " " + pArch;
+		    errlist = add( errlist, product ); 
+		    y2error( "Synchronization of %1 failed", product);
+		    error = true;
                 }
 	    }
-      
 	    i = i + 1;
 	}
 
-	// TODO: show error popup in sync failed
-	UI::ChangeWidget( `id( `state ), `Value, _("Server synced.") );
-	UI::RecalcLayout();
+	if ( error )
+	{
+	    UI::CloseDialog();
+	    string errtext = "";
+	    foreach( string product, errlist, ``{
+		errtext = errtext + product + "\n";
+	    });
+	    // text of an error popup - list of all product which cannot be synchronized follows 
+	    Popup::Error( _("Synchronisation failed for:") + "\n" + errtext );
+	}
+	else
+	{
+	    UI::ChangeWidget( `id( `state ), `Value, _("Server synced.") );
+	    UI::RecalcLayout();
 
-	map bashResult = (map)SCR::Execute( .target.bash_output, "date" );
-	string lastSync = bashResult[ "stdout" ]:"";
-	SCR::Write( .you.config.ServerLastSync, lastSync );
-	SCR::Write( .you.config, nil );
-
-	UI::UserInput();
+	    map bashResult = (map)SCR::Execute( .target.bash_output, "date" );
+	    string lastSync = bashResult[ "stdout" ]:"";
+	    SCR::Write( .you.config.ServerLastSync, lastSync );
+	    SCR::Write( .you.config, nil );
     
-	UI::CloseDialog();
+	    UI::CloseDialog();
+	}
     }
 
     term widget_server_unused =
