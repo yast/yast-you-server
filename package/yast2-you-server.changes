@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 15 17:15:19 CET 2004 - gs@suse.de
+
+- V 2.9.6
+- add base path /YOU to URL 
+
+-------------------------------------------------------------------
 Fri Mar 12 18:33:27 CET 2004 - nashif@suse.de
 
 - Install apache2 conf in the right directory
