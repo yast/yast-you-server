@@ -3,7 +3,7 @@
 
 @HEADER@
 Requires:	yast2 yast2-online-update yast2-slp
-Summary:    	YaST2 online update
+Summary:    	Online Update Server Configuration
 
 %description
 -
