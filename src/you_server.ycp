@@ -379,10 +379,11 @@ Please start the server first."));
 
     define void UpdateServerStatus() ``{
 	integer httpd_status = Service::Status( "apache2" );
-	string sys_you_server = (string)SCR::Read( .sysconfig.apache2.APACHE_SERVER_FLAGS );
-	y2milestone ( "Server status: %1 SERVER_FLAGS: %2", httpd_status==0?"running":"unused",
-		                                            sys_you_server );
+	string  sys_you_server = "";
 	
+	if ( httpd_status == 0 )
+	    sys_you_server = (string)SCR::Read( .sysconfig.apache2.APACHE_SERVER_FLAGS );
+
 	if ( httpd_status == 0
 	     && find(sys_you_server, "you_server") != -1 )
 	    server_is_running = true;
