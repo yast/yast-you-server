@@ -388,8 +388,8 @@ Please start the server first."));
 	if ( SLPRegistered() )
 	{
 	    // get the server name if SLP is already registered
-	    list<string> attr = SLP::FindAttrs ( service_type );
-	    srv_name = substring ( attr[1]:"", 6, size(attr[1]:"")-2 );
+	    map attrs = SLP::GetAttrMap ( service_type );
+	    srv_name = lookup( attrs, "name", "" );
 	}
 	
 	UI::OpenDialog(
