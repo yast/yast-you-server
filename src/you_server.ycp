@@ -6,7 +6,7 @@
 
 */
 {
-    textdomain "online-update";
+    textdomain "you-server";
 
     import "Wizard";
     import "Runlevel";
@@ -14,11 +14,18 @@
     import "Directory";
     import "Popup";
     import "Label";
+    import "SLP";
     
     boolean server_is_running = true;
-
+    
     list products = [];
 
+    // SLP registration file (located in /etc/slp.reg.d)
+    string reg_file = "you.reg";
+    // alias for YOU base path (as set in you_server.conf)
+    string base_path = "/YOU";
+
+    
     Wizard::CreateDialog();
 
     // show the special YOU image
@@ -97,10 +104,19 @@ will now be installed.");
 	UI::CloseDialog();
     }
 
+    define boolean SLPRegistered() ``{
+	if ( Runlevel::ServiceStatus( "slpd" ) == 0
+	     && SCR::Read( .target.size,  "/etc/slp.reg.d/" + reg_file ) != -1 )
+	    return true;
+	else
+	    return false;
+    }
+    
     define void EnableSLP() ``{
 
-	string help = _( "The installation of the package 'openslp' is required.
- Install the package now?" );
+	string help = _( "The installation of the package 'openslp'
+is required.
+Install the package now?" );
 	
 	if ( !Require::AreAllPackagesInstalled( [ "openslp" ] ) )
 	{
@@ -110,36 +126,50 @@ will now be installed.");
 	    }
 	}
 
-	if ( Require::AreAllPackagesInstalled( [ "openslp" ] ) )
+        // SLP register - write file you.reg
+	boolean success = SLP::RegFile ( "you.suse:http", $[ "basepath":base_path], reg_file );
+	    
+	if ( success )
 	{
-		integer exitCode = Runlevel::RunInitScript( "slpd", "start" );
+	    y2milestone( "Wrote /etc/slp.reg.d/%1", reg_file ); 
+
+	    if ( Require::AreAllPackagesInstalled( [ "openslp" ] ) ) 
+	    {
+		integer exitCode = Runlevel::RunInitScript( "slpd", "restart" );
+
 		if ( exitCode != 0 )
-		{
 		    Popup::Error( _("Error starting slpd.") );
-		    UI::ChangeWidget( `id(`slp), `Value, false );
-		}
-	}
-        // SLP register - TO DO: write .reg file for static registration
-	map bashResult = (map)SCR::Execute( .target.bash_output, "hostname -f" );
-	string cmd = "slptool register service:you.suse:http://" +  bashResult[ "stdout" ]:"";
-	if ( SCR::Execute( .target.bash, cmd ) != 0 )
-	{
-	    Popup::Error( _("SLP register failed.") );
+	    }
 	}
 	else
 	{
-	    y2milestone( "SLP registered: %1", cmd ); 
+	    Popup::Error( _("Error writing SLP registration file") );
 	}
+	
+	if ( SLPRegistered() )
+	    UI::ChangeWidget( `id(`slp), `Value, true );
+	else
+	    UI::ChangeWidget( `id(`slp), `Value, false );
     }
     
     define void DisableSLP() ``{
+        // don't stop slpd - but restart after removing the .reg file
 
-	integer exitCode =  Runlevel::RunInitScript( "slpd", "stop" );
-	if ( exitCode != 0 )
+	boolean success = SLP::DeRegFile( "/etc/slp.reg.d/" + reg_file ); 
+	if ( success )
 	{
-	    Popup::Error( _("Cannot stop slpd") ); 
-	    UI::ChangeWidget( `id(`slp), `Value, true ); 
+	    y2milestone( "/etc/slp.reg.d/%1 removed", reg_file );
+	    integer exitCode = Runlevel::RunInitScript( "slpd", "restart" );
 	}
+	else
+	{
+	    y2error( "Cannot remove /etc/slp.reg.d/%1", reg_file );
+	}
+	
+	if ( SLPRegistered() )
+	    UI::ChangeWidget( `id(`slp), `Value, true );
+	else
+	    UI::ChangeWidget( `id(`slp), `Value, false );
     }
     
     define map ProductDialog( map product ) ``{
@@ -325,6 +355,8 @@ will now be installed.");
 		    settings );
     }
 
+
+    
     term contents =
 	`VBox(
 	      `VSpacing( 1.0 ),
@@ -332,7 +364,7 @@ will now be installed.");
 		       `VBox( `VSpacing(0.5),
 			      `ReplacePoint( `id( `server_status ), `Empty() ),
 			      `Left(`CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
-					       Runlevel::ServiceStatus( "slpd" ) == 0 )
+					       SLPRegistered() )
 				    ),
 			      `VSpacing(0.5)
 			      )
