@@ -19,6 +19,6 @@ ltconfig
 ltmain.sh
 missing
 mkinstalldirs
-online-update.pot
+you-server.pot
 stamp-h*
 Makefile.am.common
