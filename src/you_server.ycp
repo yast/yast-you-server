@@ -29,6 +29,7 @@
     // default name for the server
     string server_name = _("Local YOU Server");
 
+    
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("you_server");
 
@@ -203,6 +204,7 @@ Install the package now?" );
 	{
 	    Popup::Warning (_("The HTTP server isn't running.
 Please start the server first."));
+	    UI::ChangeWidget( `id(`slp), `Value, false );
 	    return false;  
 	}
 
@@ -545,7 +547,7 @@ server.</p>")	+
 	// help text continues
 	_("<p>Press<b> Synchronize now</b> to get the current patches for all products.</p>") +
 	// help text continues
-	_("<p>YOU servers are added to the server list of an YOU client if <b>SLP_ENABLED</b> in
+	_("<p>The YOU server is added to the server list of an YOU client if <b>SLP_ENABLED</b> in
 '/etc/sysconfig/onlineupdate' is set to \"yes\".</p>");
 	
     Wizard::SetNextButton(`next, Label::CloseButton() );
@@ -573,12 +575,20 @@ server.</p>")	+
 				   )
 			     )
 		       );
-	
+
+        // get product information and set default url
 	map you_info = Pkg::YouStatus();
+	string url = "";
+
+	if ( lookup( you_info, "product", "unknown") == "SuSE Linux" )
+	    url = "ftp://ftp.suse.com/pub/suse";	// box
+	else
+	    url = "http://sdb.suse.de";			// business products
+
 	products = add( products, $[ "name": lookup( you_info, "product", "unknown"),
 				     "version": lookup( you_info, "version", "unknown" ),
 				     "arch": lookup( you_info, "basearch", "unknown" ),
-				     "url": "ftp://ftp.suse.com/pub/suse" ] );
+				     "url": url ] );
 
 	UI::CloseDialog();
 	y2debug( "Product information: %1", you_info );
@@ -630,7 +640,7 @@ server.</p>")	+
 	    UI::ChangeWidget( `id(`products), `CurrentItem, current );
 	} else if ( ret == `editname ) {
 	    server_name = EditDialog();
-	    // if SLP is already enabled, rewrite you.reg and restart lpsd
+	    // if SLP is already enabled, rewrite you.reg and restart slpd
 	    if ( SLPRegistered() )
 		EnableSLP();
 	}
