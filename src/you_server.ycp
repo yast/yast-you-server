@@ -14,11 +14,11 @@
   import "Directory";
   import "Popup";
   import "Label";
-
+  
   boolean server_is_running = true;
 
   list products = [];
-  
+
   Wizard::CreateDialog();
 
   // show the special YOU image
@@ -244,7 +244,11 @@ will now be installed.");
     products = [];
     string settings = (string)SCR::Read( .target.string,
                                          "/var/lib/YaST2/you/you_server_settings" );
-    list lines = splitstring( settings, "\n" );
+    list lines = [];
+    if ( size( settings ) < 0 )
+    {
+	lines = splitstring( settings, "\n" );
+    }
     integer i = 0;
     while( i < size( lines ) ) {
       list e = splitstring( lines[ i ]:"", ";" );
@@ -316,12 +320,16 @@ server.</p>");
   UpdateServerStatus();
 
   LoadSettings();
-  
+
   if ( size( products ) == 0 ) {
-    products = add( products, $[ "name": "SuSE-Linux",
-                                 "version": "9.0",
-                                 "arch": "i386",
-                                 "url": "ftp://ftp.suse.com/pub/suse" ] );
+
+      map you_info = Pkg::YouStatus();
+      products = add( products, $[ "name": lookup( you_info, "product", "unknown"),
+				   "version": lookup( you_info, "version", "unknown" ),
+				   "arch": lookup( you_info, "basearch", "unknown" ),
+				   "url": "ftp://ftp.suse.com/pub/suse" ] );
+      
+      y2debug( "Product information: %1", you_info );
   }
 
   UpdateProductList();
