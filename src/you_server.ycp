@@ -190,9 +190,9 @@ providing the YOU patches?" ),
 is required.
 Install the package now?" );
 	
-	if ( !Require::AreAllPackagesInstalled( [ "openslp" ] ) )
+	if ( !Require::AreAllPackagesInstalled( [ "openslp", "openslp-server" ] ) )
 	{
-	    if ( !Require::RequireAndConflict( [ "openslp" ], [], help ) )
+	    if ( !Require::RequireAndConflict( [ "openslp", "openslp-server" ], [], help ) )
 	    {
 		Popup::Error (_("Failed to install required packages."));
 		return false;
