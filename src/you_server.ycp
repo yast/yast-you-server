@@ -9,7 +9,7 @@
     textdomain "you-server";
 
     import "Wizard";
-    import "Runlevel";
+    import "Service";
     import "Require";
     import "Directory";
     import "Popup";
@@ -27,22 +27,39 @@
     // name for the service
     string service_type = "you.suse";
     // default name for the server
-    string server_name = "YOU Server";
+    string server_name = _("Local YOU Server");
     
     Wizard::CreateDialog();
 
-    define void RunSuseConfigApache( string state ) ``{
-	SCR::Write( .sysconfig.apache.YOU_SERVER, state );
-	if( !SCR::Write( .sysconfig.apache, nil ) ) {
-	    Popup::Error( _("Unable to write /etc/sysconfig/apache") );
+    define void RunSuseConfigApache( boolean enable_you_server ) ``{
+
+	string flags = (string)SCR::Read( .sysconfig.apache2.APACHE_SERVER_FLAGS );
+
+	if ( enable_you_server )
+	{
+	    // add flag "you_server" to APACHE_SERVER_FLAGS
+	    flags = flags + " " + "you_server";
+	}
+	else	// remove "you_server"
+	{
+	    list<string> server_flags =  splitstring( flags, " ," );
+	    server_flags = maplist( string flag, server_flags, { if ( flag != "you_server" ) return flag; } );
+	    flags = mergestring( server_flags, " " );
+	}
+	SCR::Write( .sysconfig.apache2.APACHE_SERVER_FLAGS, flags ); 
+
+	if( !SCR::Write( .sysconfig.apache2, nil ) ) {
+	    Popup::Error( _("Unable to write /etc/sysconfig/apache2") );
 	    return;
 	}
-	if( SCR::Execute( .target.bash, "/sbin/SuSEconfig --module apache" ) != 0 ) {
-	    Popup::Error( _("'SuSEconfig --module apache' failed.") );
+	if( SCR::Execute( .target.bash, "/sbin/SuSEconfig --module apache2" ) != 0 ) {
+	    Popup::Error( _("'SuSEconfig --module apache2' failed.") );
 	}
     }
 
     define void StartYouServer() ``{
+	boolean ok = true;
+	
 	UI::OpenDialog(
 		       `opt(`decorated),
 		       `VBox(
@@ -57,26 +74,31 @@
 			     )
 		       );
 
-	string help = _("The YOU server requires an HTTP server. The 'apache' package
+	string help = _("The YOU server requires an HTTP server. The 'apache2' package
 will now be installed.");
 
-	if ( !Require::AreAllPackagesInstalled( [ "apache" ] ) ) {
+	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-worker" ] ) ) {
 	    UI::ChangeWidget( `id(`details), `Value, _("Installing HTTP server...") );
 	    UI::RecalcLayout();
     
-	    if ( !Require::RequireAndConflict( [ "apache" ], [], help ) ) {
-		Popup::Error (_("Failed to install required packages."));	
+	    if ( !Require::RequireAndConflict( [ "apache2-worker" ], [], help ) )
+	    {
+		Popup::Error (_("Failed to install required packages."));
+		ok = false;
 	    }
 	}
-	if ( Require::AreAllPackagesInstalled( [ "apache" ] ) )	{
+	
+	if ( ok )
+	{
 	    UI::ChangeWidget( `id(`details), `Value, _("Adapting configuration...") );
 	    UI::RecalcLayout();
 
-	    RunSuseConfigApache( "yes" );
+	    // add "you_server" to APACHE_SERVER_FLAGS
+	    RunSuseConfigApache( true );
 
 	    UI::ChangeWidget( `id(`details), `Value, _("Starting server...") );
 	    UI::RecalcLayout();
-	    integer exitCode = Runlevel::RunInitScript( "apache", "restart" );
+	    integer exitCode = Service::RunInitScript( "apache2", "restart" );
 	    if ( exitCode != 0 ) {
 		Popup::Error( _("Error starting apache.") );
 	    }   
@@ -85,6 +107,17 @@ will now be installed.");
     }
 
     define void StopYouServer() ``{
+
+	boolean restart =  Popup::AnyQuestion( _( "Question" ),
+					    // text of a popup
+					    // user decision required whether to stop or restart
+					    _("Do you want to shut down the HTTP Server
+(apache2) or restart without
+providing the YOU patches directory?"),
+					    _("&Restart"),
+					    _("S&hut down"),
+					       `focus_yes );
+
 	UI::OpenDialog(
 		       `opt(`decorated),
 		       `VBox(
@@ -96,15 +129,24 @@ will now be installed.");
 			     )
 		       );
 
-	Runlevel::RunInitScript( "apache", "stop" );
 
-	RunSuseConfigApache( "no" );
+	// remove "you_server" from APACHE_SERVER_FLAGS
+	RunSuseConfigApache( false );
+	
+	if ( restart )
+	{
+	    Service::RunInitScript( "apache2", "reload" );
+	}
+	else
+	{
+	    Service::RunInitScript( "apache2", "stop" );
+	}
 
 	UI::CloseDialog();
     }
 
     define boolean SLPRegistered() ``{
-	if ( Runlevel::ServiceStatus( "slpd" ) == 0
+	if ( Service::Status( "slpd" ) == 0
 	     && SCR::Read( .target.size,  "/etc/slp.reg.d/" + reg_file ) != -1 )
 	    return true;
 	else
@@ -149,13 +191,10 @@ Please start the server first."));
 	{
 	    y2milestone( "Wrote /etc/slp.reg.d/%1", reg_file ); 
 
-	    if ( Require::AreAllPackagesInstalled( [ "openslp" ] ) ) 
-	    {
-		integer exitCode = Runlevel::RunInitScript( "slpd", "restart" );
+	    integer exitCode = Service::RunInitScript( "slpd", "restart" );
 
-		if ( exitCode != 0 )
-		    Popup::Error( _("Error starting slpd.") );
-	    }
+	    if ( exitCode != 0 )
+		Popup::Error( _("Error starting slpd.") );
 	}
 	else
 	{
@@ -182,7 +221,7 @@ Please start the server first."));
 	if ( success )
 	{
 	    y2milestone( "/etc/slp.reg.d/%1 removed", reg_file );
-	    integer exitCode = Runlevel::RunInitScript( "slpd", "restart" );
+	    integer exitCode = Service::RunInitScript( "slpd", "restart" );
 	}
 	else
 	{
@@ -303,10 +342,13 @@ Please start the server first."));
 	      );
 
     define void UpdateServerStatus() ``{
-	integer httpd_status = Runlevel::ServiceStatus( "apache" );
-	string sys_you_server = (string)SCR::Read( .sysconfig.apache.YOU_SERVER );
-
-	if ( httpd_status == 0 && sys_you_server == "yes" )
+	integer httpd_status = Service::Status( "apache2" );
+	string sys_you_server = (string)SCR::Read( .sysconfig.apache2.APACHE_SERVER_FLAGS );
+	y2milestone ( "Server status: %1 SERVER_FLAGS: %2", httpd_status==0?"running":"unused",
+		                                            sys_you_server );
+	
+	if ( httpd_status == 0
+	     && find(sys_you_server, "you_server") != -1 )
 	    server_is_running = true;
 	else
 	    server_is_running = false;
