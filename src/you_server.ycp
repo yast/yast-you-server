@@ -22,7 +22,7 @@
 
     // SLP registration file (located in /etc/slp.reg.d)
     string reg_file = "you.reg";
-    // alias for YOU base path (as set in you_server.conf)
+    // alias for YOU base path (as set in /etc/httpd/you_server.conf)
     string base_path = "/YOU";
 
     
