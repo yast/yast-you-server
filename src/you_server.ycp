@@ -24,7 +24,10 @@
     string reg_file = "you.reg";
     // alias for YOU base path (as set in /etc/httpd/you_server.conf)
     string base_path = "/YOU";
-
+    // name for the service
+    string service_type = "you.suse";
+    // default name for the server
+    string server_name = "YOU Server";
     
     Wizard::CreateDialog();
 
@@ -134,8 +137,8 @@ Install the package now?" );
 	if ( size(host) != 0 )
 	{
 	    // SLP register - write file you.reg
-	    string service = "service:you.suse:http://" +  substring( host, 0, size(host)-1 ) + ",en,65535";
-	    success = SLP::RegFile ( service, $[ "basepath":base_path], reg_file );
+	    string service = "service:" + service_type + ":http://" + substring( host, 0, size(host)-1 ) + ",en,65535";
+	    success = SLP::RegFile ( service, $[ "basepath":base_path, "name":server_name ], reg_file );
 	}   
 
 	if ( success )
@@ -165,6 +168,7 @@ Install the package now?" );
         // don't stop slpd - but restart after removing the .reg file
 
 	boolean success = SLP::DeRegFile( "/etc/slp.reg.d/" + reg_file ); 
+
 	if ( success )
 	{
 	    y2milestone( "/etc/slp.reg.d/%1 removed", reg_file );
@@ -364,18 +368,54 @@ Install the package now?" );
 		    settings );
     }
 
+    define string EditDialog() ``{
+	string srv_name = "";
+	
+	if ( SLPRegistered() )
+	{
+	    // get the server name if SLP is already registered
+	    list<string> attr = SLP::FindAttrs ( service_type );
+	    srv_name = substring ( attr[1]:"", 6, size(attr[1]:"")-2 );
+	}
+	
+	UI::OpenDialog(
+		       `opt( `decorated ),
+		       `VBox(
+			     `VSpacing( 0.3 ),
+			     `TextEntry( `id( `name ), _("Server Name"), srv_name==""?server_name:srv_name ),
+			     `VSpacing( 0.3 ),
+			     `HBox(
+				   `PushButton( `id( `ok ), `opt( `default ), Label::OKButton() ),
+				   `PushButton( `id( `cancel ), Label::CancelButton() )
+				   )
+			     )
+		       );
+    
+	UI::SetFocus( `name );
+    
+	symbol ret = (symbol)UI::UserInput();
 
+	if ( ret == `ok )
+	    srv_name = (string)UI::QueryWidget( `id( `name ), `Value );
+
+	UI::CloseDialog();
+
+	return srv_name;
+    }
     
     term contents =
 	`VBox(
 	      `VSpacing( 1.0 ),
 	      `Frame ( _("Server &Control"),
-		       `VBox( `VSpacing(0.5),
+		       `VBox( `VSpacing(0.4),
 			      `ReplacePoint( `id( `server_status ), `Empty() ),
-			      `Left(`CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
-					       SLPRegistered() )
+			      `VSpacing(0.5),
+			      `HBox( `CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
+						SLPRegistered()),
+				     `HStretch(),
+				     `PushButton( `id( `editname), _("Ed&it Name") )
 				    ),
-			      `VSpacing(0.5)
+			      `VSpacing(0.4)
 			      )
 		       ),
 	      `VSpacing( 0.5 ),
@@ -383,23 +423,29 @@ Install the package now?" );
 		      `header( _("Product"), _("Version"), _("Architecture"),
 			       _("Synchronisation URL") ) ),
 	      `HBox(
-		    `PushButton( `id( `add ), _("Add") ),
-		    `PushButton( `id( `edit ), _("Edit") ),
+		    `PushButton( `id( `add ), _("&Add") ),
+		    `PushButton( `id( `edit ), _("&Edit") ),
 		    `HStretch(),
-		    `Right(`PushButton( `id( `remove ), _("Remove")  ))
+		    `Right(`PushButton( `id( `remove ), _("&Remove")  ))
 		    ),
 	      `VSpacing( 1.0 ),
-	      `HBox(
-		    `Label( _("Last Synchronization: ") ),
-		    `HStretch(),
-		    `Label( `id(`last_sync), _("10 days ago") )
-		    ),
-	      `VSpacing( 0.5 ),
-	      `HBox(
-		    `PushButton( `id( `sync ), "Synchronize now" ),
-		    `HStretch(),
-		    `PushButton( `id( `setup_sync ), "Setup automatic synchronization" )
-		    ),
+	      `Frame( _("Synchronisation"),
+		      `VBox(
+			    `VSpacing(0.4),
+			    `HBox(
+				  `Label( _("Last Synchronization: ") ),
+				  `HStretch(),
+				  `Label( `id(`last_sync), _("10 days ago") )
+				  ),
+			    `VSpacing( 0.5 ),
+			    `HBox(
+				  `PushButton( `id( `sync ), "Synchronize now" ),
+				  `HStretch(),
+				  `PushButton( `id( `setup_sync ), "Setup automatic synchronization" )
+				  ),
+			    `VSpacing(0.4)
+			    )
+		      ),
       	      `VSpacing( 1.0 )
 	      );
     // help text for the YOU Server Configuration dialog
@@ -488,6 +534,11 @@ server.</p>")	+
 	    UpdateProductList();
 	    if ( current >= size( products ) ) current = size( products ) - 1;
 	    UI::ChangeWidget( `id(`products), `CurrentItem, current );
+	} else if ( ret == `editname ) {
+	    server_name = EditDialog();
+	    // if SLP is already enabled, rewrite you.reg and restart lpsd
+	    if ( SLPRegistered() )
+		EnableSLP();
 	}
 
     } until ( ret == `next || ret == `cancel  || ret == `abort );
