@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 12 15:57:08 CET 2004 - gs@suse.de
+
+- V 2.9.4
+- use apache2 and call rcapache2 reload (bug #35471) 
+
+-------------------------------------------------------------------
 Wed Mar 10 01:54:18 CET 2004 - nashif@suse.de
 
 - adapted for new wizard
