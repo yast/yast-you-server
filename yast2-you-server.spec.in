@@ -19,7 +19,6 @@ Summary:    	YaST2 online update
 
 %files
 %defattr(-,root,root)
-@scrconfdir@/*.scr
 @clientdir@/you_server.ycp
 @desktopdir@/you_server.desktop
 %doc @docdir@
