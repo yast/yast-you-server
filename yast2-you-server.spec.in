@@ -23,3 +23,5 @@ Summary:    	YaST2 online update
 @desktopdir@/you_server.desktop
 %doc @docdir@
 /etc/apache2/conf.d/you_server.conf
+%dir /etc/apache2
+%dir /etc/apache2/conf.d
