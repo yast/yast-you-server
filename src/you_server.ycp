@@ -120,8 +120,8 @@ will now be installed.");
 		}
 	}
         // SLP register - TO DO: write .reg file for static registration
-	map bashResult = (map)SCR::Execute( .target.bash_output, "hostname -i" );
-	string cmd = "slptool register service:you.suse://" +  bashResult[ "stdout" ]:"" ;
+	map bashResult = (map)SCR::Execute( .target.bash_output, "hostname -f" );
+	string cmd = "slptool register service:you.suse:http://" +  bashResult[ "stdout" ]:"";
 	if ( SCR::Execute( .target.bash, cmd ) != 0 )
 	{
 	    Popup::Error( _("SLP register failed.") );
@@ -292,7 +292,7 @@ will now be installed.");
 	string settings = (string)SCR::Read( .target.string,
 					     "/var/lib/YaST2/you/you_server_settings" );
 	list lines = [];
-	if ( size( settings ) < 0 )
+	if ( settings != nil )
 	{
 	    lines = splitstring( settings, "\n" );
 	}
@@ -382,12 +382,24 @@ server.</p>")	+
 
     if ( size( products ) == 0 ) {
 
+	UI::OpenDialog(
+		       `opt(`decorated),
+		       `VBox(
+			     `HBox(
+				   `HSpacing(1),
+				   `Left( `Label( `id( `state ), _("Getting product information...") ) ),
+				   `HSpacing( 1 )
+				   )
+			     )
+		       );
+	
 	map you_info = Pkg::YouStatus();
 	products = add( products, $[ "name": lookup( you_info, "product", "unknown"),
 				     "version": lookup( you_info, "version", "unknown" ),
 				     "arch": lookup( you_info, "basearch", "unknown" ),
 				     "url": "ftp://ftp.suse.com/pub/suse" ] );
-      
+
+	UI::CloseDialog();
 	y2debug( "Product information: %1", you_info );
     }
 
