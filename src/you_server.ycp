@@ -593,7 +593,7 @@ server.</p>")	+
 	map you_info = Pkg::YouStatus();
 	string url = "";
 
-	if ( lookup( you_info, "product", "unknown") == "SuSE Linux" )
+	if ( lookup( you_info, "product", "unknown") == "SUSE Linux" )
 	    url = "ftp://ftp.suse.com/pub/suse";	// box
 	else
 	    url = "http://sdb.suse.de";			// business products
