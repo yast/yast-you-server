@@ -2,8 +2,7 @@
 # neededforbuild yast2-devel-packages gpp libgpp libxcrypt libxcrypt-devel yast2-installation yast2-storage yast2-country yast2-bootloader yast2-mouse yast2-x11
 
 @HEADER@
-Requires:	yast2 yast2-online-update yast2-slp
-
+Requires:	yast2 yast2-online-update yast2-slp yast2-http-server
 Summary:    	YaST2 online update
 
 %description
