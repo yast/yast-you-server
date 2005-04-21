@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=online_update
+Icon=yast-you_server
 Exec=/sbin/yast2 you_server 
 
 Name=YOU Server Configuration
