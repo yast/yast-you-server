@@ -20,5 +20,5 @@ Icon=yast-you_server
 Exec=/sbin/yast2 you_server 
 
 Name=YOU Server Configuration
-GenericName=Setup local server for serving YaST Online Update clients
+GenericName=Set up a local server for serving YaST Online Update clients
 X-KDE-SubstituteUID=true
