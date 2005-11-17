@@ -570,7 +570,7 @@ are set correctly (see 'Edit' dialog).") );
 	{
 	    // get the server name if SLP is already registered
 	    map attrs = SLP::GetAttrMap ( service_type );
-	    srv_name = lookup( attrs, "name", "" );
+	    srv_name = attrs["name"]:"";
 	}
 	
 	UI::OpenDialog(
@@ -680,9 +680,9 @@ server.</p>")	+
 	else
 	    url = "http://sdb.suse.de";			// business products
 
-	products = add( products, $[ "name": lookup( you_info, "product", "unknown"),
-				     "version": lookup( you_info, "version", "unknown" ),
-				     "arch": lookup( you_info, "basearch", "unknown" ),
+	products = add( products, $[ "name": you_info["product"]:"unknown",
+				     "version": you_info["version"]:"unknown",
+				     "arch": you_info["basearch"]:"unknown",
 				     "url": url ] );
 
 	UI::CloseDialog();

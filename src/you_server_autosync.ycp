@@ -15,14 +15,13 @@
     
     string cronfile = "/etc/cron.d/yast2-you-server";
     string syncfile = "/var/lib/YaST2/you/syncfile";
+    string cronjob = "";
     
     integer hour = random(24);
     integer minute = random(60);
 
     define boolean CronEnabled() ``{
 	
-	string cronjob = "";
-
 	if (SCR::Read(.target.size, cronfile)!= -1 )
 	{
 	    cronjob = (string)SCR::Read( .target.string, cronfile );
@@ -69,7 +68,15 @@
     
     define symbol SetupAutomatic( list products ) ``{
 
-	boolean enabled = CronEnabled();
+	boolean enabled = CronEnabled();		// sets global 'cronjob'
+
+	if (enabled) {					// read current hour/minute values
+	    list<string> values = splitstring(cronjob, " ");
+	    integer m = tointeger(values[0]:"-1");
+	    if (m >= 0) minute = m;
+	    integer h = tointeger(values[1]:"-1");
+	    if (h >= 0) hour = h;
+	}
 	
 	string heading = _("YOU Server Automatic Synchronisation Setup");
 
