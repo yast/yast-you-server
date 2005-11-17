@@ -600,20 +600,16 @@ are set correctly (see 'Edit' dialog).") );
     
     term contents =
 	`VBox(
-	      `VSpacing( 1.0 ),
 	      `Frame ( _("Server &Control"),
-		       `VBox( `VSpacing(0.4),
+		       `VBox(
 			      `ReplacePoint( `id( `server_status ), `Empty() ),
-			      `VSpacing(0.5),
 			      `HBox( `CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
 						SLPRegistered()),
 				     `HStretch(),
 				     `PushButton( `id( `editname), _("Ed&it Name") )
-				    ),
-			      `VSpacing(0.4)
+				    )
 			      )
 		       ),
-	      `VSpacing( 0.5 ),
 	      `Table( `id( `products ),
 		      `header( _("Product"), _("Version"), _("Architecture"),
 			       _("Synchronisation URL") ) ),
@@ -623,25 +619,20 @@ are set correctly (see 'Edit' dialog).") );
 		    `HStretch(),
 		    `Right(`PushButton( `id( `remove ), _("&Remove")  ))
 		    ),
-	      `VSpacing( 1.0 ),
 	      `Frame( _("Synchronisation"),
 		      `VBox(
-			    `VSpacing(0.4),
 			    `HBox(
 				  `Label( _("Last Synchronization: ") ),
 				  `HStretch(),
 				  `Label( `id(`last_sync), _("10 days ago") )
 				  ),
-			    `VSpacing( 0.5 ),
 			    `HBox(
 				  `PushButton( `id( `sync ), "Synchronize now" ),
 				  `HStretch(),
 				  `PushButton( `id( `setup_sync ), "Setup automatic synchronization" )
 				  ),
-			    `VSpacing(0.4)
 			    )
 		      ),
-      	      `VSpacing( 1.0 )
 	      );
     // help text for the YOU Server Configuration dialog
     string help_text = _("<p>This module is used to setup and control a local YOU

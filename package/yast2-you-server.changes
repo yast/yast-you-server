@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 17 10:47:06 CET 2005 - kkaempf@suse.de
+
+- reduce VSpacing in main dialog (#55727)
+- 2.13.0
+
+-------------------------------------------------------------------
 Mon Apr 19 13:57:40 CEST 2004 - cschum@suse.de
 
 - Merge changes until branch-Linux-9_1-2_9_10 from 9.1 branch.
