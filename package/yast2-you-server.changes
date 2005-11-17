@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 17 11:25:31 CET 2005 - kkaempf@suse.de
+
+- read hour/minute default value from cronjob (#76389)
+- 2.13.1
+
+-------------------------------------------------------------------
 Thu Nov 17 10:47:06 CET 2005 - kkaempf@suse.de
 
 - reduce VSpacing in main dialog (#55727)
