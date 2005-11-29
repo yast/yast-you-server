@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 29 09:18:14 CET 2005 - visnov@suse.cz
+
+- removed yast2-x11 from build dependencies
+- 2.13.2 
+
+-------------------------------------------------------------------
 Thu Nov 17 11:25:31 CET 2005 - kkaempf@suse.de
 
 - read hour/minute default value from cronjob (#76389)
