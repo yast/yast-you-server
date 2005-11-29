@@ -630,9 +630,9 @@ are set correctly (see 'Edit' dialog).") );
 				  `PushButton( `id( `sync ), "Synchronize now" ),
 				  `HStretch(),
 				  `PushButton( `id( `setup_sync ), "Setup automatic synchronization" )
-				  ),
+				  )
 			    )
-		      ),
+		      )
 	      );
     // help text for the YOU Server Configuration dialog
     string help_text = _("<p>This module is used to setup and control a local YOU
