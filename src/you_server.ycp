@@ -10,7 +10,7 @@
 
     import "Wizard";
     import "Service";
-    import "Require";
+    import "Package";
     import "Directory";
     import "Popup";
     import "Label";
@@ -83,7 +83,7 @@
 The 'apache2' package is required.
 Install the package now?");
 
-	if ( !Require::AreAllPackagesInstalled( [ "apache2, apache2-prefork" ] ) )
+	if ( !Package::InstalledAll( [ "apache2, apache2-prefork" ] ) )
 	{
 	    boolean install = true;
 	    if ( Service::Enabled( "apache" ) )
@@ -103,7 +103,7 @@ and use 'apache2' or cancel the installation?  " ) );
 		UI::ChangeWidget( `id(`details), `Value, _("Installing HTTP server...") );
 		UI::RecalcLayout();
 
-		if ( !Require::RequireAndConflict( [ "apache2", "apache2-prefork" ], [], help ) )
+		if ( !Package::InstallAll ( [ "apache2", "apache2-prefork" ] ) )
 		{
 		    Popup::Error (_("Failed to install required packages."));
 		    ok = false;
@@ -194,9 +194,9 @@ providing the YOU patches?" ),
 is required.
 Install the package now?" );
 	
-	if ( !Require::AreAllPackagesInstalled( [ "openslp", "openslp-server" ] ) )
+	if ( !Package::InstalledAll( [ "openslp", "openslp-server" ] ) )
 	{
-	    if ( !Require::RequireAndConflict( [ "openslp", "openslp-server" ], [], help ) )
+	    if ( !Package::InstallAll( [ "openslp", "openslp-server" ] ) )
 	    {
 		Popup::Error (_("Failed to install required packages."));
 		return false;
