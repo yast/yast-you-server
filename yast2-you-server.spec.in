@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages gpp libgpp libxcrypt libxcrypt-devel yast2-installation yast2-storage yast2-country yast2-bootloader yast2-mouse 
 
 @HEADER@
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-bootloader yast2-country yast2-devel-packages yast2-mouse
 Requires:	yast2 yast2-online-update yast2-slp
 Summary:    	Online Update Server Configuration
 
