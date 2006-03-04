@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
-BuildRequires:	gcc-c++ libxcrypt-devel yast2-bootloader yast2-country yast2-devel-packages yast2-mouse
+BuildRequires:	gcc-c++ libxcrypt-devel yast2-bootloader yast2-country yast2 yast2-devtools yast2-testsuite yast2-mouse yast2-perl-bindings perl-XML-Writer update-desktop-files
 Requires:	yast2 yast2-online-update yast2-slp
 Summary:    	Online Update Server Configuration
 
