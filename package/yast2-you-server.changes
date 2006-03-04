@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sat Mar  4 13:10:38 CET 2006 - kkaempf@suse.de
+
+- drop yast2-devel-packages from BuildReq.
+
+-------------------------------------------------------------------
 Mon Jan  9 08:33:59 CET 2006 - visnov@suse.cz
 
 - replaced Require by Package
