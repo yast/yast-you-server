@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 10 14:57:56 CET 2006 - locilka@suse.cz
+
+- merged proofread texts
+- 2.13.4
+
+-------------------------------------------------------------------
 Sat Mar  4 13:10:38 CET 2006 - kkaempf@suse.de
 
 - drop yast2-devel-packages from BuildReq.

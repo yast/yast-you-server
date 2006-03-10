@@ -78,11 +78,12 @@
 	    if (h >= 0) hour = h;
 	}
 	
-	string heading = _("YOU Server Automatic Synchronisation Setup");
+	// dialog caption
+	string heading = _("YOU Server Automatic Synchronization Setup");
 
-	string txt = _("The automatic synchronization is executed by a daily cronjob. 
+	string txt = _("The automatic synchronization is executed by a daily cron job. 
 A network connection must be available when
-the synchronisation takes place.");
+the synchronization takes place.");
 
 	
 	term head = `VBox(
@@ -98,6 +99,7 @@ the synchronisation takes place.");
 		  `HBox(
 			`HSpacing( 0.8 ),
 			`Left(
+			      // check box
 			      `CheckBox( `id( `enable ), `opt( `notify ), _("Enable Automatic Update"), enabled )
 			      )
 			),
@@ -110,13 +112,16 @@ the synchronisation takes place.");
 					    `HBox(
 						  `HSpacing( 0.8 ),
 						  `Left(
-							`Label( `id( `crontime ), _("Time when synchronisation is performed:") )
+							// headline connected with "Hour" and "Minute"
+							`Label( `id( `crontime ), _("Synchronization Time") )
 							),
 						  `HSpacing( 0.8 )
 						  ),
 					    `HBox(
 						  `HStretch(),
+						  // Synchronization Time - Hour
 						  `IntField( `id( `hour ), _("Hour"), 0, 23, hour ),
+						  // Synchronization Time - Minute
 						  `IntField( `id( `minute ), _("Minute"), 0, 59, minute ),
 						  `HStretch()
 						  ),

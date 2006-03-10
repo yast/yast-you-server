@@ -89,9 +89,9 @@ Install the package now?");
 	    if ( Service::Enabled( "apache" ) )
 	    {
 		install =  Popup::ContinueCancel( // text of a popup
-						 _( "There is already the HTTP Server 'apache'
+						 _( "The HTTP server 'apache' is already
 in use. The YOU server needs 'apache2'.
-Do you want to disable 'apache' and install
+Disable 'apache' and install
 and use 'apache2' or cancel the installation?  " ) );
 
 		if ( install )
@@ -129,6 +129,7 @@ and use 'apache2' or cancel the installation?  " ) );
 	    UI::RecalcLayout();
 	    integer exitCode = Service::RunInitScript( "apache2", "restart" );
 	    if ( exitCode != 0 ) {
+		// popup error message
 		Popup::Error( _("Error starting apache.") );
 	    }   
 	}
@@ -140,11 +141,13 @@ and use 'apache2' or cancel the installation?  " ) );
 	boolean restart =  Popup::AnyQuestion( _( "Question" ),
 					    // text of a popup
 					    // user decision required whether to stop or restart
-					    _( "Do you want to shut down the HTTP Server
+					    _( "Shut down the HTTP server
 (apache2) or restart without
 providing the YOU patches?" ),
+					    // button label
 					    _("&Restart"),
-					    _("S&hut down"),
+					    // button label
+					    _("S&hut Down"),
 					       `focus_yes );
 
 	string label = "";
@@ -205,8 +208,9 @@ Install the package now?" );
 
 	if ( !server_is_running )
 	{
-	    Popup::Warning (_("The HTTP server isn't running.
-Please start the server first."));
+	    // popup warning message
+	    Popup::Warning (_("The HTTP server is not running.
+Start the server first."));
 	    UI::ChangeWidget( `id(`slp), `Value, false );
 	    return false;  
 	}
@@ -230,11 +234,13 @@ Please start the server first."));
 	    integer exitCode = Service::RunInitScript( "slpd", "restart" );
 
 	    if ( exitCode != 0 )
+		// popup error message
 		Popup::Error( _("Error starting slpd.") );
 	}
 	else
 	{
-	    Popup::Error( _("Error writing SLP registration file") );
+	    // popup error message
+	    Popup::Error( _("Error writing SLP registration file.") );
 	}
 	
 	if ( SLPRegistered() )
@@ -402,7 +408,7 @@ Please start the server first."));
 			     `HBox(
 				   `HSpacing(1),
 				   `VBox(
-					 `Label( `id( `state ), _("Syncing Server...") ),
+					 `Label( `id( `state ), _("Syncing server...") ),
 					 `Label( `id( `product ), "                   " )
 					 ),
 				   `HSpacing( 1 )
@@ -450,7 +456,7 @@ Please start the server first."));
 		errtext = errtext + product + "\n";
 	    });
 	    // text of an error popup - list of all product which cannot be synchronized follows
-	    Popup::Error( _("Synchronisation failed for:") + "\n" + errtext +
+	    Popup::Error( _("Synchronization failed for:") + "\n" + errtext +
 			  _("Check whether the requested server is up. If yes,
 make sure that the user name and the password
 are set correctly (see 'Edit' dialog).") );
@@ -471,15 +477,19 @@ are set correctly (see 'Edit' dialog).") );
 
     term widget_server_unused =
 	`HBox(
+	      // status information
 	      `Label( _("Server status: unused") ),
 	      `HStretch(),
+	      // push button
 	      `PushButton( `id( `server_control ), _("Start Server") )
 	      );
 
     term widget_server_running =
 	`HBox(
+	      // status information
 	      `Label( _("Server status: running") ),
 	      `HStretch(),
+	      // push button
 	      `PushButton( `id( `server_control ), _("Stop Server") )
 	      );
 
@@ -600,50 +610,62 @@ are set correctly (see 'Edit' dialog).") );
     
     term contents =
 	`VBox(
+	      // frame label
 	      `Frame ( _("Server &Control"),
 		       `VBox(
 			      `ReplacePoint( `id( `server_status ), `Empty() ),
-			      `HBox( `CheckBox( `id( `slp ), `opt(`notify), _("&SLP registration enabled"),
+			      // check box
+			      `HBox( `CheckBox( `id( `slp ), `opt(`notify), _("&SLP Registration Enabled"),
 						SLPRegistered()),
 				     `HStretch(),
+				     // push button
 				     `PushButton( `id( `editname), _("Ed&it Name") )
 				    )
 			      )
 		       ),
 	      `Table( `id( `products ),
+	    	      // table header item(s)
 		      `header( _("Product"), _("Version"), _("Architecture"),
-			       _("Synchronisation URL") ) ),
+			       _("Synchronization URL") ) ),
 	      `HBox(
+	    	    // push button
 		    `PushButton( `id( `add ), _("&Add") ),
+		    // push button
 		    `PushButton( `id( `edit ), _("&Edit") ),
 		    `HStretch(),
+		    // push button
 		    `Right(`PushButton( `id( `remove ), _("&Remove")  ))
 		    ),
-	      `Frame( _("Synchronisation"),
+	      // frame label
+	      `Frame( _("Synchronization"),
 		      `VBox(
 			    `HBox(
+				  // informative text, followed by a time from the last synchronization
 				  `Label( _("Last Synchronization: ") ),
 				  `HStretch(),
+				  // time from the last synchronization
 				  `Label( `id(`last_sync), _("10 days ago") )
 				  ),
 			    `HBox(
-				  `PushButton( `id( `sync ), "Synchronize now" ),
+				  // push button
+				  `PushButton( `id( `sync ), "Synchronize Now" ),
 				  `HStretch(),
-				  `PushButton( `id( `setup_sync ), "Setup automatic synchronization" )
+				  // push button
+				  `PushButton( `id( `setup_sync ), "Setup Automatic Synchronization" )
 				  )
 			    )
 		      )
 	      );
     // help text for the YOU Server Configuration dialog
-    string help_text = _("<p>This module is used to setup and control a local YOU
+    string help_text = _("<p>This module is used to set up and control a local YOU
 server.</p>")	+
 	// help text continues
 	_("<p>Enable the <b>SLP registration</b> to announce the YOU server via the 'Service Location Protocol'.") +
 	// help text continues
-	_("<p>Press<b> Synchronize now</b> to get the current patches for all products.</p>") +
+	_("<p>Press<b> Synchronize Now</b> to get the current patches for all products.</p>") +
 	// help text continues
-	_("<p>The YOU server is added to the server list of an YOU client if <b>SLP_ENABLED</b> in
-'/etc/sysconfig/onlineupdate' is set to \"yes\".</p>");
+	_("<p>The YOU server is added to the server list of a client if <b>SLP_ENABLED</b> in
+<tt>/etc/sysconfig/onlineupdate</tt> is set to <tt>yes</tt>.</p>");
 	
     Wizard::SetNextButton(`next, Label::CloseButton() );
     Wizard::HideAbortButton();
@@ -664,6 +686,7 @@ server.</p>")	+
 		       `VBox(
 			     `HBox(
 				   `HSpacing(1),
+				   // current progress information
 				   `Left( `Label( `id( `state ), _("Getting product information...") ) ),
 				   `HSpacing( 1 )
 				   )
