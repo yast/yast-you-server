@@ -22,3 +22,4 @@ Exec=/sbin/yast2 you_server
 Name=YOU Server Configuration
 GenericName=Set up a local server for serving YaST Online Update clients
 X-KDE-SubstituteUID=true
+StartupNotify=true
