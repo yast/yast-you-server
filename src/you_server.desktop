@@ -17,7 +17,7 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
 Icon=yast-you_server
-Exec=/sbin/yast2 you_server 
+Exec=/usr/bin/xdg-su -c '/sbin/yast2 you_server'
 
 Name=YOU Server Configuration
 GenericName=Set up a local server for serving YaST Online Update clients
